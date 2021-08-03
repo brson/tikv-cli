@@ -1,6 +1,7 @@
 use anyhow::Result;
 use structopt::StructOpt;
 use tikv_client::RawClient;
+use futures::executor::block_on;
 
 #[derive(StructOpt)]
 struct Options {
@@ -14,10 +15,28 @@ fn main() -> Result<()> {
 }
 
 fn run(opts: Options) -> Result<()> {
-    //let client = RawClient::new(&opts.address)
+    let client = RawClient::new(vec![&opts.address[..]]);
+    let client = block_on(client)?;
     let mut readline = rustyline::Editor::<()>::new();
 
     loop {
         let line = readline.readline(">> ")?;
+        let res = block_on(run_line(&client, &line));
+        if let Err(e) = res {
+            println!("error: {}", e);
+        }
     }
+}
+
+async fn run_line(client: &RawClient, line: &str) -> Result<()> {
+    println!("writing to database");
+    client.put("key".to_owned(), "coconut".to_owned()).await?;
+
+    let value = client.get("key".to_owned()).await?;
+    let value = value.unwrap();
+    let value = String::from_utf8(value)?;
+
+    println!("value: {}", value);
+
+    Ok(())
 }
