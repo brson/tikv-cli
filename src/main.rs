@@ -2,6 +2,10 @@ use anyhow::Result;
 use structopt::StructOpt;
 use tikv_client::RawClient;
 use futures::executor::block_on;
+use pest::Parser;
+
+#[macro_use]
+extern crate pest_derive;
 
 #[derive(StructOpt)]
 struct Options {
@@ -40,3 +44,7 @@ async fn run_line(client: &RawClient, line: &str) -> Result<()> {
 
     Ok(())
 }
+
+#[derive(Parser)]
+#[grammar = "raw_parser.pest"]
+struct RawParser;

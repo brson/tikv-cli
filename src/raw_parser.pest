@@ -1,0 +1,6 @@
+command = _{
+  put | get
+}
+
+put = { "put" }
+get = { "get" }
