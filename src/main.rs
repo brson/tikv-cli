@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use anyhow::Result;
 use structopt::StructOpt;
 use tikv_client::RawClient;
@@ -33,14 +35,25 @@ fn run(opts: Options) -> Result<()> {
 }
 
 async fn run_line(client: &RawClient, line: &str) -> Result<()> {
-    println!("writing to database");
-    client.put("key".to_owned(), "coconut".to_owned()).await?;
+    let command = parse_raw_command(line)?;
 
-    let value = client.get("key".to_owned()).await?;
-    let value = value.unwrap();
-    let value = String::from_utf8(value)?;
-
-    println!("value: {}", value);
+    match command {
+        RawCommand::Put { key, value } => {
+            client.put(key, value).await?;
+        },
+        RawCommand::Get { key } => {
+            let value = client.get(key).await?;
+            match value {
+                Some(value) => {
+                    let value = String::from_utf8(value)?;
+                    println!("{}", value);
+                },
+                None => {
+                    println!("<none>");
+                },
+            }
+        },
+    }
 
     Ok(())
 }
@@ -48,3 +61,24 @@ async fn run_line(client: &RawClient, line: &str) -> Result<()> {
 #[derive(Parser)]
 #[grammar = "raw_parser.pest"]
 struct RawParser;
+
+enum RawCommand {
+    Put {
+        key: String,
+        value: String,
+    },
+    Get {
+        key: String,
+    },
+}
+
+fn parse_raw_command(line: &str) -> Result<RawCommand> {
+    let mut parser = RawParser::parse(Rule::command, line)?;
+    let command = parser.next().expect("next");
+    println!("{:?}", command);
+
+    Ok(RawCommand::Put {
+        key: "k".to_string(),
+        value: "v".to_string(),
+    })
+}
