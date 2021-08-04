@@ -73,12 +73,38 @@ enum RawCommand {
 }
 
 fn parse_raw_command(line: &str) -> Result<RawCommand> {
-    let mut parser = RawParser::parse(Rule::command, line)?;
-    let command = parser.next().expect("next");
-    println!("{:?}", command);
+    let mut pairs = RawParser::parse(Rule::command, line)?;
+    let command = pairs.next().unwrap();
 
-    Ok(RawCommand::Put {
-        key: "k".to_string(),
-        value: "v".to_string(),
+    Ok(match command.as_rule() {
+        Rule::command => {
+            let mut pairs = command.into_inner();
+
+            let mut command = pairs.next().unwrap();
+
+            match command.as_rule() {
+                Rule::put => {
+                    let mut pairs = command.into_inner();
+
+                    let key = pairs.next().unwrap().as_str().to_string();
+                    let value = pairs.next().unwrap().as_str().to_string();
+
+                    RawCommand::Put {
+                        key, value,
+                    }
+                },
+                Rule::get => {
+                    let mut pairs = command.into_inner();
+
+                    let key = pairs.next().unwrap().as_str().to_string();
+
+                    RawCommand::Get {
+                        key
+                    }
+                },
+                _ => unreachable!(),
+            }
+        },
+        _ => unreachable!(),
     })
 }
