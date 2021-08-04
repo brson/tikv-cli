@@ -1,6 +1,15 @@
 command = {
-  put | get
+  SOI ~
+  (put | get)
+  ~ EOI
 }
 
-put = { "put" }
-get = { "get" }
+put = { "put" ~ key ~ value }
+get = { "get" ~ key }
+
+key = { string }
+value = { string }
+
+string = @{ QUOTATION_MARK ~ ASCII_ALPHANUMERIC* ~ QUOTATION_MARK }
+
+WHITESPACE = _{ " " }
