@@ -10,6 +10,8 @@ get = { "get" ~ key }
 key = { string }
 value = { string }
 
-string = @{ QUOTATION_MARK ~ ASCII_ALPHANUMERIC* ~ QUOTATION_MARK }
+string = _{ quoted_string | unquoted_string }
+quoted_string = @{ QUOTATION_MARK ~ ASCII_ALPHANUMERIC* ~ QUOTATION_MARK }
+unquoted_string = @{ (LETTER | NUMBER)+ }
 
 WHITESPACE = _{ " " }
