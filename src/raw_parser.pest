@@ -1,8 +1,10 @@
 command = {
   SOI ~
-  (put | get)
+  some_command
   ~ EOI
 }
+
+some_command = _{ (put | get) }
 
 put = { "put" ~ key ~ value }
 get = { "get" ~ key }
